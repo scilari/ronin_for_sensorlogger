@@ -41,14 +41,12 @@ class RIDIGlobSpeedSequence(CompiledSequence):
         ts = imu_all[['time']].values / 1e09
         gyro = imu_all[['gyro_x', 'gyro_y', 'gyro_z']].values
         acce = imu_all[['acce_x', 'acce_y', 'acce_z']].values
-        tango_pos = imu_all[['pos_x', 'pos_y', 'pos_z']].values
 
+        tango_pos = np.zeros_like(acce) # NOTE: Dummy values for GT position
+        
         # Use game rotation vector as device orientation.
-        init_tango_ori = quaternion.quaternion(*imu_all[['ori_w', 'ori_x', 'ori_y', 'ori_z']].values[0])
-        game_rv = quaternion.from_float_array(imu_all[['rv_w', 'rv_x', 'rv_y', 'rv_z']].values)
-
-        init_rotor = init_tango_ori * game_rv[0].conj()
-        ori = init_rotor * game_rv
+        game_rv = quaternion.from_float_array(imu_all[['game_rv_w', 'game_rv_x', 'game_rv_y', 'game_rv_z']].values)
+        ori = game_rv # NOTE: Simplified from the original
 
         nz = np.zeros(ts.shape)
         gyro_q = quaternion.from_float_array(np.concatenate([nz, gyro], axis=1))
@@ -62,8 +60,6 @@ class RIDIGlobSpeedSequence(CompiledSequence):
         self.targets = (tango_pos[self.w:, :2] - tango_pos[:-self.w, :2]) / (ts[self.w:] - ts[:-self.w])
         self.gt_pos = tango_pos
         self.orientations = quaternion.as_float_array(game_rv)
-        print(self.ts.shape, self.features.shape, self.targets.shape, self.gt_pos.shape, self.orientations.shape,
-              self.w)
 
     def get_feature(self):
         return self.features
