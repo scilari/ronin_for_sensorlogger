@@ -1,3 +1,66 @@
+# RoNIN-based PDR for SensorLogger
+
+<p>
+  <img align="right" src="sensorlogger_to_pdr/images/university.png" width="200"/>
+</p>
+
+This fork modifies [RoNIN](https://github.com/Sachini/ronin) to be used with data (`acc`, `gyro`, `rotvec`) collected with [SensorLogger](https://www.tszheichoi.com/sensorlogger) data collection app ([Android](https://play.google.com/store/apps/details?id=com.kelvin.sensorapp[) and [iOS](https://apps.apple.com/us/app/sensor-logger/id1531582925)). The fork's main purpose is to offer an easy RoNIN-based PDR algorithm for researchers and developers, as I found it to be surprisingly hard to find robust and working PDR options freely available. Or better yet, usable out of the box.
+
+The compatibility is achieved by hacking RoNIN (ridi execution path) internals step by step, removing blocking dependencies on ground truth and calibration data.
+
+## Setup
+1. Clone this fork
+2. Download a pre-trained RoNIN model you want to use (from [here](https://doi.org/10.20383/102.0543)). The fork is tested with `ronin_resnet/checkpoint_gsn_latest.pt`.
+3. Create virtual environment, activate, and install dependencies (or run globally)
+```
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+## Usage
+Example notebook at `sensorlogger_to_pdr/example.ipynb` demonstrates basic usage.
+
+Command line:
+```
+python ./sensorlogger/sensorlogger_to_pdr.py --path <sensor_logger_data> --ronin_path <ronin_path> --model_path <ronin_model_path>
+```
+Example:
+```
+python ./sensorlogger/sensorlogger_to_pdr.py --path /ronin_for_sensorlogger/sensorlogger/example_data/shopping_mall_eight --ronin_path "/ronin_for_sensorlogger/" --model_path /ronin_for_sensorlogger/models/ronin_resnet/checkpoint_gsn_latest.pt
+```
+
+## Sensor and data requirements
+The modified RoNIN algorithm requires the following sensor data files
+  * `Gyroscope.csv`
+  * `Orientation.csv`
+  * `TotalAcceleration.csv`
+
+Using other data collection applications should be straightforward by just converting to SensorLogger format or converting directly to the pickle RoNIN requires.
+
+### Gyroscope.csv format:
+```
+time,seconds_elapsed,z,y,x
+1718030736872695300,0.0706953125,-0.32157647609710693,0.15512901544570923,0.6729803085327148
+```
+
+### Orientation.csv format:
+```
+time,seconds_elapsed,qz,qy,qx,qw,roll,pitch,yaw
+1718030736912338000,0.110337890625,-0.49317896366119385,-0.10824661701917648,0.21374563872814178,0.8362834453582764,0.033629775047302246,-0.4828145205974579,1.0739439725875854
+```
+NOTE: roll, pitch, and yaw are not required by RoNIN
+
+### TotalAcceleration.csv format:
+```
+time,seconds_elapsed,z,y,x
+1716979893874983200,0.047983154296875,9.851848602294922,1.407876968383789,-0.008374879136681557
+```
+
+## Notes:
+The fork was originally hacked under a timeline for [research purposes](https://arxiv.org/abs/2409.01242). The functionality has not been fully tested, but the fork seems to work over different phone models and manufacturers (OnePlus, iPhone). Fixes and suggestions are welcome.
+
+## Original README:
 # RoNIN: Robust Neural Inertial Navigation in the Wild
 
 **Paper**: [ICRA 2020](https://ieeexplore.ieee.org/abstract/document/9196860), [arXiv](https://arxiv.org/abs/1905.12853)  
