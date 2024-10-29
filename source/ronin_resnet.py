@@ -250,7 +250,7 @@ def recon_traj_with_preds(dataset, preds, seq_id=0, **kwargs):
     Reconstruct trajectory with predicted global velocities.
     """
     ts = dataset.ts[seq_id]
-    ind = np.array([i[1] for i in dataset.index_map if i[0] == seq_id], dtype=np.int)
+    ind = np.array([i[1] for i in dataset.index_map if i[0] == seq_id], dtype=np.int32)
     dts = np.mean(ts[ind[1:]] - ts[ind[:-1]])
     pos = np.zeros([preds.shape[0] + 2, 2])
     pos[0] = dataset.gt_pos[seq_id][0, :2]
@@ -279,7 +279,7 @@ def test_sequence(args):
 
     if not torch.cuda.is_available() or args.cpu:
         device = torch.device('cpu')
-        checkpoint = torch.load(args.model_path, map_location=lambda storage, location: storage)
+        checkpoint = torch.load(args.model_path, map_location=lambda storage, location: storage, weights_only=True)
     else:
         device = torch.device('cuda:0')
         checkpoint = torch.load(args.model_path)
@@ -304,7 +304,7 @@ def test_sequence(args):
     for data in test_data_list:
         seq_dataset = get_dataset(root_dir, [data], args, mode='test')
         seq_loader = DataLoader(seq_dataset, batch_size=1024, shuffle=False)
-        ind = np.array([i[1] for i in seq_dataset.index_map if i[0] == 0], dtype=np.int)
+        ind = np.array([i[1] for i in seq_dataset.index_map if i[0] == 0], dtype=np.int32)
 
         targets, preds = run_test(network, seq_loader, device, True)
         losses = np.mean((targets - preds) ** 2, axis=0)

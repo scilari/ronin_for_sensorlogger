@@ -6,7 +6,7 @@ from numba import jit
 from scipy.ndimage.filters import gaussian_filter1d
 
 
-@jit
+@jit(nopython=True)
 def change_cf(ori, vectors):
     """
     Euler-Rodrigous formula v'=v+2s(rxv)+2rx(rxv)
@@ -92,7 +92,7 @@ class RandomHoriRotateSeq:
         self.i_f = input_format
         self.o_f = output_format
 
-    @jit
+    @jit(nopython=True)
     def __call__(self, feature, target):
         a = np.random.random() * 2 * np.math.pi
         # print("Rotating by {} degrees", a/np.math.pi * 180)
