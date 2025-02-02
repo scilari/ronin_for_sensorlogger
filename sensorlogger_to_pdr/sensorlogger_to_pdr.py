@@ -21,7 +21,7 @@ def create_ronin_pickle(path):
   # Sample and interpolate data to 200 Hz
   ts = np.arange(acc.seconds_elapsed.iloc[0], acc.seconds_elapsed.iloc[-1], 0.005)
 
-  df["elapsed_seconds"] = ts
+  df["seconds_elapsed"] = ts
   
   df["time"] = ts * 1e9 # to nanoseconds for RoNIN
 
@@ -50,6 +50,21 @@ def run_ronin(path, ronin_path, model_path):
       f" --out_dir {path}/processed --model_path {model_path}"
     os.system(cmd)
 
+def _annotate_pdr(pdr_df, path):
+    annotation_path = os.path.join(path, "Annotation.csv")
+    if not os.path.exists(annotation_path):
+        return
+    
+    annotations = pd.read_csv(annotation_path)
+    print(f"Found {len(annotations)} annotations, adding to PDR CSV")
+
+    pdr_df["annotation"] = ""
+    
+    for s, text in zip(annotations.seconds_elapsed, annotations.text):
+        gt_ix = (pdr_df.seconds_elapsed - s).abs().idxmin()
+        pdr_df.loc[gt_ix, "annotation"] = text
+
+
 def create_pdr_csv(path):
     print("Creating PDR CSV")
     xy_file = glob.glob(path + "/processed/*.npy", recursive=True)[0]
@@ -59,11 +74,13 @@ def create_pdr_csv(path):
 
     df_ronin = pd.read_pickle(path + "/processed/data.pkl")
     df = pd.DataFrame()
-    df["elapsed_seconds"] = df_ronin.elapsed_seconds
-    df["t"] = df_ronin.elapsed_seconds # Just for convenience
+    df["seconds_elapsed"] = df_ronin.seconds_elapsed
+    df["t"] = df_ronin.seconds_elapsed # Just for convenience
 
     df["x"] = x
     df["y"] = y
+
+    annotate_pdr(df, path)
 
     pdr_path = path + "/processed/pdr.csv"
     print(f"Saving PDR output to {pdr_path}")
