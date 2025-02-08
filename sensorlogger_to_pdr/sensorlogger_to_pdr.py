@@ -80,7 +80,7 @@ def create_pdr_csv(path):
     df["x"] = x
     df["y"] = y
 
-    annotate_pdr(df, path)
+    _annotate_pdr(df, path)
 
     pdr_path = path + "/processed/pdr.csv"
     print(f"Saving PDR output to {pdr_path}")
