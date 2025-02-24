@@ -54,8 +54,11 @@ def _annotate_pdr(pdr_df, path):
     annotation_path = os.path.join(path, "Annotation.csv")
     if not os.path.exists(annotation_path):
         return
-    
-    annotations = pd.read_csv(annotation_path)
+    try:
+      annotations = pd.read_csv(annotation_path)
+    except:
+      # Fails for some other reason (like empty file)
+      return
     print(f"Found {len(annotations)} annotations, adding to PDR CSV")
 
     pdr_df["annotation"] = ""
