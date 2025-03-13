@@ -40,7 +40,7 @@ def create_ronin_pickle(path):
 
   filename = path + "/processed/data.pkl"
   os.makedirs(os.path.dirname(filename), exist_ok=True)
-  print(f"Saving RoNIN format pickle to {filename}")
+  print(f"Saving RoNIN format pickle (size: {len(df)}) to {filename}")
   df.to_pickle(filename)
 
 def run_ronin(path, ronin_path, model_path):
@@ -79,6 +79,14 @@ def create_pdr_csv(path):
     df = pd.DataFrame()
     df["seconds_elapsed"] = df_ronin.seconds_elapsed
     df["t"] = df_ronin.seconds_elapsed # Just for convenience
+
+    if len(x) != len(df):
+        print(f"Warning: Mismatch in lengths: npy={len(x)} vs pkl={len(df)}")
+        print("Truncating to the shorter length (should not be a big problem)")
+        min_len = min(len(x), len(df))
+        x = x[:min_len]
+        y = y[:min_len]
+        df = df[:min_len]
 
     df["x"] = x
     df["y"] = y
